@@ -12,6 +12,12 @@ void	game_loop(t_data *data)
 	mlx_loop(data->mlx);
 }
 
+void	exit_msg(char *msg)
+{
+	fprintf(stderr, "%sError: %s ❌\n%s", RED BLINK, msg, RESET);
+	exit(EXIT_FAILURE);
+}
+
 int	main(int argc, char **argv)
 {
 	(void)argc; (void)argv;
@@ -20,16 +26,10 @@ int	main(int argc, char **argv)
 	memset(&data, 0, sizeof(t_data));
 	data.mlx = mlx_init();
 	if (!data.mlx)
-	{
-		fprintf(stderr, MLX_CONNECTION);
-		exit(EXIT_FAILURE);
-	}
+		exit_msg(MLX_CONNECTION);
 	data.win = mlx_new_window(data.mlx, 100, 100, "");
 	if (!data.win)
-	{
-		fprintf(stderr, WIN_CONNECTION);
-		exit(EXIT_FAILURE);
-	}
+		exit_msg(WIN_CONNECTION);
 	game_loop(&data);
 	return (EXIT_SUCCESS);
 }

@@ -15,5 +15,6 @@
 # include "../libs/mlx_mac/mlx.h"
 # include "key.h"
 # include "dual.h"
+# include "ainsi_colors.h"
 
 #endif
