@@ -1,8 +1,9 @@
 #ifndef DUAL_H
 # define DUAL_H
 
-# define MLX_CONNECTION "Connection between with the display not established."
-# define WIN_CONNECTION "Window could not be created."
+# define MLX_CONNECTION	"Connection between with the display not established."
+# define WIN_CONNECTION	"Window could not be created."
+# define IMG_CREATE		"Unable to create a new image with MiniLibX"
 
 typedef struct s_img
 {
