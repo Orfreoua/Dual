@@ -7,7 +7,7 @@ MLX_LINUX = ./libs/mlx_linux/
 MLX_MAC = ./libs/mlx_mac/
 INCLUDES = ./headers/
 
-SRCS =
+SRCS =	srcs/remove_img.c
 
 SRCS_MAIN = srcs/main.c
 

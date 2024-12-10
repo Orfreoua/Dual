@@ -40,13 +40,13 @@ int	main(int argc, char **argv)
 	data.mlx = mlx_init();
 	if (!data.mlx)
 		exit_error(MLX_CONNECTION);
-	data.win = mlx_new_window(data.mlx, 100, 100, "");
+	data.win = mlx_new_window(data.mlx, 1000, 1000, "");
 	if (!data.win)
 	{
 		free(data.mlx);
 		exit_error(WIN_CONNECTION);
 	}
-	data.img.img = mlx_new_image(data.mlx, 100, 100);
+	data.img.img = mlx_new_image(data.mlx, 1000, 1000);
 	if (!data.img.img)
 	{
 		mlx_destroy_window(data.mlx, data.win);
@@ -55,6 +55,9 @@ int	main(int argc, char **argv)
 	}
 	data.img.addr = (char *)mlx_get_data_addr(data.img.img, &data.img.bpp,
 			&data.img.size_line, &data.img.endian);
+	data.point.x = 0;
+	data.point.y = 200;
+	paste_resized_image(&data, data.point, get_image_size(data.mlx, "assets/samurai/xpm/Attack_1.xpm"), "assets/samurai/xpm/Attack_1.xpm");
 	game_loop(&data);
 	return (EXIT_SUCCESS);
 }
