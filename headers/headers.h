@@ -14,5 +14,6 @@
 # include "../libs/mlx_linux/mlx.h"
 # include "../libs/mlx_mac/mlx.h"
 # include "key.h"
+# include "dual.h"
 
 #endif

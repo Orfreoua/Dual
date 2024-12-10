@@ -1,7 +1,6 @@
 NAME = Dual
 
 CC = cc
-
 CFLAGS = -Wall -Wextra -Werror -g3
 
 MLX_LINUX = ./libs/mlx_linux/
@@ -32,21 +31,22 @@ endif
 all: $(NAME)
 
 $(NAME): $(OBJS) $(MLX_IS)libmlx.a
-	make -C $(MLX_LINUX)
-	$(CC) $(CFLAGS) -I $(INCLUDES) $(OBJS) $(MLX_OS) -o $(NAME)
+	# Seule la compilation du projet est faite ici, pas la recompilation de libmlx.a
+	$(CC) $(CFLAGS) $(CINCLUDES) $(OBJS) $(MLX_OS) -o $(NAME)
 
 .c.o:
-	$(CC) $(CFLAGS) -I $(INCLUDES) -c $< -o $(<:.c=.o)
+	$(CC) $(CFLAGS) $(CINCLUDES) -c $< -o $(<:.c=.o)
 
 $(MLX_IS)libmlx.a:
+	# Si libmlx.a n'existe pas, lance la compilation de libmlx
 	make -C $(MLX_IS) all
 
 clean:
-	make -C $(MLX_LINUX) clean
-	make -C $(MLX_MAC) clean
-	rm -rf $(OBJS) 
+	# Supprimer uniquement les fichiers objets générés par ton projet
+	rm -rf $(OBJS)
 
 fclean: clean
+	# Supprimer l'exécutable
 	rm -rf $(NAME)
 
 re: fclean all
