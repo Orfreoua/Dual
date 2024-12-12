@@ -26,7 +26,7 @@ std::vector<std::string> getSpriteFiles(const std::string& folderPath) {
 }
 
 // Fonction pour afficher les sprites d'un dossier avec une animation
-void playSpriteAnimation(SDL_Renderer* renderer, const std::string& folderPath, int x, int y, int width, int height, int delayMs) {
+void playSpriteAnimation(SDL_Renderer* renderer, const std::string& folderPath, int x, int y, int width, int height, int delayMs, int flipDirection) {
     // Charger les fichiers des sprites
     std::vector<std::string> spriteFiles = getSpriteFiles(folderPath);
     if (spriteFiles.empty()) {
@@ -62,6 +62,8 @@ void playSpriteAnimation(SDL_Renderer* renderer, const std::string& folderPath, 
     size_t currentFrame = 0;
     Uint32 lastFrameTime = SDL_GetTicks();
 
+    SDL_RendererFlip flip = (flipDirection < 0) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+
     while (running) {
         // Gestion des événements
         while (SDL_PollEvent(&event)) {
@@ -80,7 +82,7 @@ void playSpriteAnimation(SDL_Renderer* renderer, const std::string& folderPath, 
         SDL_RenderClear(renderer);
 
         SDL_Rect destRect = {x, y, width, height};
-        SDL_RenderCopy(renderer, textures[currentFrame], nullptr, &destRect);
+        SDL_RenderCopyEx(renderer, textures[currentFrame], nullptr, &destRect, 0, nullptr, flip);
 
         SDL_RenderPresent(renderer);
     }
@@ -132,7 +134,7 @@ int main(int argc, char **argv) {
     }
 
     // Jouer l'animation des sprites avec une vérification du dossier
-    playSpriteAnimation(renderer, "assets/samurai/shield", 100, 100, 200, 150, 200);
+    playSpriteAnimation(renderer, "assets/samurai/run", 100, 100, 200, 150, 200, 1); // Exemple avec effet miroir
 
     // Nettoyage
     SDL_DestroyRenderer(renderer);
