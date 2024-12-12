@@ -11,6 +11,10 @@ namespace fs = std::filesystem;
 // Fonction pour charger tous les fichiers d'un dossier
 std::vector<std::string> getSpriteFiles(const std::string& folderPath) {
     std::vector<std::string> files;
+    if (!fs::exists(folderPath)) {
+        std::cerr << "Le dossier " << folderPath << " n'existe pas ou est introuvable !" << std::endl;
+        return files;
+    }
     for (const auto& entry : fs::directory_iterator(folderPath)) {
         if (entry.is_regular_file()) {
             files.push_back(entry.path().string());
@@ -26,7 +30,7 @@ void playSpriteAnimation(SDL_Renderer* renderer, const std::string& folderPath, 
     // Charger les fichiers des sprites
     std::vector<std::string> spriteFiles = getSpriteFiles(folderPath);
     if (spriteFiles.empty()) {
-        std::cerr << "Aucun fichier sprite trouvé dans le dossier : " << folderPath << std::endl;
+        std::cerr << "Aucun fichier sprite valide trouvé dans le dossier : " << folderPath << std::endl;
         return;
     }
 
@@ -127,8 +131,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Jouer l'animation des sprites
-    playSpriteAnimation(renderer, "assets/samurai/attack_1", 100, 100, 200, 150, 150);
+    // Jouer l'animation des sprites avec une vérification du dossier
+    playSpriteAnimation(renderer, "assets/attack_1", 100, 100, 200, 150, 200);
 
     // Nettoyage
     SDL_DestroyRenderer(renderer);
