@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     }
 
     // Jouer l'animation des sprites avec une vérification du dossier
-    playSpriteAnimation(renderer, "assets/attack_1", 100, 100, 200, 150, 200);
+    playSpriteAnimation(renderer, "assets/samurai/shield", 100, 100, 200, 150, 200);
 
     // Nettoyage
     SDL_DestroyRenderer(renderer);
