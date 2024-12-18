@@ -1,5 +1,6 @@
 #include "../headers/Samurai.hpp"
 #include <iostream>
+#include <SDL2/SDL.h>
 
 Samurai::Samurai(int x, int y)
     : Character(x, y),
@@ -8,29 +9,31 @@ Samurai::Samurai(int x, int y)
       m_delayMs(100),
       m_width(128),
       m_height(128),
-      currentSprite("assets/samurai/idle"),
+      currentSprite("idle"),
       m_isJumping(false),
       m_currentLoop(true),
       m_startY(y),
-      m_jumpHeight(m_height / 2),
+      m_jumpHeight(64), // m_height/2 = 128/2 = 64
       m_walkStartTime(0),
       m_isAttacking(false),
-      m_isDying(false)
+      m_isDying(false),
+      m_basePath("assets/samurai")
 {
 }
 
-void Samurai::init(SDL_Renderer* renderer) {
+void Samurai::init(SDL_Renderer* renderer, const std::string& basePath) {
     m_renderer = renderer;
-    m_currentAnimation = loadAnimation(m_renderer, currentSprite);
-    m_currentLoop = true;
+    m_basePath = basePath;
+    setSprite("idle", true);
 }
 
-void Samurai::setSprite(const std::string& spritePath, bool loop) {
-    currentSprite = spritePath;
+void Samurai::setSprite(const std::string& spriteName, bool loop) {
+    currentSprite = spriteName;
     m_currentLoop = loop;
     destroyAnimation(m_currentAnimation);
-    m_currentAnimation = loadAnimation(m_renderer, currentSprite);
-    std::cout << "Sprite actif défini sur : " << currentSprite << " (loop=" << (loop?"true":"false") << ")" << std::endl;
+    std::string fullPath = m_basePath + "/" + spriteName;
+    m_currentAnimation = loadAnimation(m_renderer, fullPath);
+    std::cout << "Sprite actif défini sur : " << fullPath << " (loop=" << (loop?"true":"false") << ")" << std::endl;
 }
 
 void Samurai::updateAndRender() {
@@ -59,7 +62,7 @@ void Samurai::updateAndRender() {
             Uint32 currentTime = SDL_GetTicks();
             if (currentTime - m_currentAnimation.lastFrameTime >= (Uint32)m_delayMs) {
                 m_isJumping = false;
-                setSprite("assets/samurai/idle", true);
+                setSprite("idle", true);
                 setPosition(getX(), m_startY);
             }
         }
@@ -69,7 +72,7 @@ void Samurai::updateAndRender() {
     if (isWalking() && !isRunning()) {
         Uint32 currentTime = SDL_GetTicks();
         if (currentTime - m_walkStartTime >= RUN_THRESHOLD) {
-            setSprite("assets/samurai/run", true);
+            setSprite("run", true);
         }
     }
 
@@ -80,22 +83,15 @@ void Samurai::updateAndRender() {
             Uint32 currentTime = SDL_GetTicks();
             if (currentTime - m_currentAnimation.lastFrameTime >= (Uint32)m_delayMs) {
                 m_isAttacking = false;
-                setSprite("assets/samurai/idle", true);
+                setSprite("idle", true);
             }
         }
     }
 
-    // Fin de l'animation dead
+    // Fin de dead
     if (m_isDying && !m_currentLoop) {
-        size_t lastFrameIndex = (m_currentAnimation.frames.empty()) ? 0 : (m_currentAnimation.frames.size() - 1);
-        if (m_currentAnimation.currentFrame == lastFrameIndex) {
-            Uint32 currentTime = SDL_GetTicks();
-            if (currentTime - m_currentAnimation.lastFrameTime >= (Uint32)m_delayMs) {
-                // L'animation dead est terminée
-                // On ne repasse pas à idle, on reste m_isDying = true.
-                // On peut laisser Game détecter que c'est fini pour fermer le jeu.
-            }
-        }
+        // On ne repasse pas à idle après dead.
+        // On laisse Game détecter la fin avec isDeadAnimationFinished().
     }
 }
 
@@ -111,7 +107,7 @@ void Samurai::startJump() {
     if (!m_isJumping && !m_isAttacking && !m_isDying) {
         m_isJumping = true;
         m_startY = getY();
-        setSprite("assets/samurai/jump", false);
+        setSprite("jump", false);
     }
 }
 
@@ -120,20 +116,20 @@ bool Samurai::isJumping() const {
 }
 
 bool Samurai::isWalking() const {
-    return (currentSprite.find("walk") != std::string::npos);
+    return (currentSprite == "walk");
 }
 
 bool Samurai::isRunning() const {
-    return (currentSprite.find("run") != std::string::npos);
+    return (currentSprite == "run");
 }
 
 void Samurai::startWalk() {
     if (!m_isJumping && !m_isAttacking && !m_isDying) {
         if (!isWalking() && !isRunning()) {
-            setSprite("assets/samurai/walk", true);
+            setSprite("walk", true);
             m_walkStartTime = SDL_GetTicks();
         } else if (isRunning()) {
-            setSprite("assets/samurai/walk", true);
+            setSprite("walk", true);
             m_walkStartTime = SDL_GetTicks();
         }
     }
@@ -141,15 +137,15 @@ void Samurai::startWalk() {
 
 void Samurai::stopWalk() {
     if (!m_isJumping && !m_isAttacking && !m_isDying) {
-        setSprite("assets/samurai/idle", true);
+        setSprite("idle", true);
     }
     m_walkStartTime = 0;
 }
 
-void Samurai::startAttack(const std::string& attackPath) {
+void Samurai::startAttack(const std::string& attackName) {
     if (!m_isJumping && !m_isAttacking && !m_isDying) {
         m_isAttacking = true;
-        setSprite(attackPath, false);
+        setSprite(attackName, false);
     }
 }
 
@@ -160,7 +156,7 @@ bool Samurai::isAttacking() const {
 void Samurai::startDead() {
     if (!m_isAttacking && !m_isJumping && !m_isDying) {
         m_isDying = true;
-        setSprite("assets/samurai/dead", false);
+        setSprite("dead", false);
     }
 }
 
@@ -169,8 +165,6 @@ bool Samurai::isDying() const {
 }
 
 bool Samurai::isDeadAnimationFinished() const {
-    // L'animation dead est terminée si m_isDying = true,
-    // currentFrame = dernière frame et le temps d'affichage de cette frame est écoulé
     if (!m_isDying) return false;
     if (m_currentAnimation.frames.empty()) return false;
 
@@ -179,8 +173,12 @@ bool Samurai::isDeadAnimationFinished() const {
 
     Uint32 currentTime = SDL_GetTicks();
     if (currentTime - m_currentAnimation.lastFrameTime >= (Uint32)m_delayMs) {
-        return true; // la dernière frame a été affichée assez longtemps
+        return true; 
     }
 
     return false;
+}
+
+void Samurai::setBasePath(const std::string& path) {
+    m_basePath = path;
 }
