@@ -6,7 +6,12 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++17
 
 SDL_LIBS = -lSDL2 -lSDL2_image
 
-SRC = srcs/main.cpp
+SRC =	srcs/main.cpp\
+		srcs/Game.cpp\
+		srcs/Character.cpp\
+		srcs/Samurai.cpp\
+		srcs/Animation.cpp
+
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
