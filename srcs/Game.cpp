@@ -80,7 +80,7 @@ void Game::processKeyDown(SDL_Keycode key) {
         // Ne pas interrompre le saut
         if (!samurai.isJumping()) {
             samurai.setDirection(1);
-            samurai.setPosition(samurai.getX() + 5, samurai.getY());
+            //samurai.setPosition(samurai.getX() + 5, samurai.getY());
             samurai.startWalk();
         } else {
             // Le samouraï est en saut, on peut éventuellement juste changer la direction,
@@ -90,7 +90,7 @@ void Game::processKeyDown(SDL_Keycode key) {
     } else if (key == SDLK_LEFT) {
         if (!samurai.isJumping()) {
             samurai.setDirection(-1);
-            samurai.setPosition(samurai.getX() - 5, samurai.getY());
+            //samurai.setPosition(samurai.getX() - 5, samurai.getY());
             samurai.startWalk();
         } else {
             // En saut, on ne change pas l'animation, juste la direction si on veut

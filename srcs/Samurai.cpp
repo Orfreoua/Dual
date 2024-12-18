@@ -6,13 +6,13 @@ Samurai::Samurai(int x, int y)
       m_renderer(nullptr),
       m_direction(1),
       m_delayMs(100),
-      m_width(64),
-      m_height(64),
+      m_width(192),
+      m_height(192),
       currentSprite("assets/samurai/idle"),
       m_isJumping(false),
       m_currentLoop(true),
       m_startY(y),
-      m_jumpHeight(50),
+      m_jumpHeight(m_height / 2),
       m_walkStartTime(0) // initialisé à 0
 {
 }
