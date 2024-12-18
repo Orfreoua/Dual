@@ -44,6 +44,13 @@ void Game::run() {
         handleEvents();
         update();
         render();
+
+        // Si le samouraï est en train de mourir et que l'animation dead est finie,
+        // on peut quitter le jeu.
+        if (samurai.isDying() && samurai.isDeadAnimationFinished()) {
+            m_isRunning = false;
+        }
+
         SDL_Delay(16);
     }
 }
@@ -62,7 +69,12 @@ void Game::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
-            m_isRunning = false;
+            // Si on ferme la fenêtre, on lance dead si pas déjà dying
+            if (!samurai.isDying()) {
+                samurai.startDead();
+            } else {
+                // Si déjà dying, on laisse finir
+            }
         } else if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
             processKeyDown(event.key.keysym.sym);
         } else if (event.type == SDL_KEYUP) {
@@ -74,31 +86,48 @@ void Game::handleEvents() {
 void Game::processKeyDown(SDL_Keycode key) {
     std::cout << "Touche pressée : " << SDL_GetKeyName(key) << std::endl;
 
+    // Si le samouraï est en train de mourir, on ignore tout
+    if (samurai.isDying()) return;
+
     if (key == SDLK_ESCAPE) {
-        m_isRunning = false;
+        // Lancer dead si pas déjà en train
+        if (!samurai.isDying()) {
+            samurai.startDead();
+        }
     } else if (key == SDLK_RIGHT) {
-        // Ne pas interrompre le saut
-        if (!samurai.isJumping()) {
+        if (!samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
             samurai.setDirection(1);
-            //samurai.setPosition(samurai.getX() + 5, samurai.getY());
             samurai.startWalk();
         } else {
-            // Le samouraï est en saut, on peut éventuellement juste changer la direction,
-            // mais sans changer l'animation. (Optionnel)
             samurai.setDirection(1);
         }
     } else if (key == SDLK_LEFT) {
-        if (!samurai.isJumping()) {
+        if (!samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
             samurai.setDirection(-1);
-            //samurai.setPosition(samurai.getX() - 5, samurai.getY());
             samurai.startWalk();
         } else {
-            // En saut, on ne change pas l'animation, juste la direction si on veut
             samurai.setDirection(-1);
         }
+    } else if (key == SDLK_DOWN) {
+        // Lance l'animation shield (si on n'est pas en saut, pas en attaque, pas en dying)
+        if (!samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
+            samurai.setSprite("assets/samurai/shield", false);
+        }
     } else if (key == SDLK_SPACE) {
-        if (!samurai.isJumping()) {
+        if (!samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
             samurai.startJump();
+        }
+    } else if (key == SDLK_e) {
+        if (!samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
+            samurai.startAttack("assets/samurai/attack_1");
+        }
+    } else if (key == SDLK_r) {
+        if (!samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
+            samurai.startAttack("assets/samurai/attack_2");
+        }
+    } else if (key == SDLK_t) {
+        if (!samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
+            samurai.startAttack("assets/samurai/attack_3");
         }
     }
 }
@@ -106,16 +135,18 @@ void Game::processKeyDown(SDL_Keycode key) {
 void Game::processKeyUp(SDL_Keycode key) {
     std::cout << "Touche relâchée : " << SDL_GetKeyName(key) << std::endl;
 
-    // Ne pas interrompre le saut non plus à la fin de la pression
-    if ((key == SDLK_RIGHT || key == SDLK_LEFT) && !samurai.isJumping()) {
-        // Si on n'est pas en saut, on repasse à idle
+    if (samurai.isDying()) return;
+
+    // Quand on relâche les flèches droite/gauche, si pas en saut, pas en attaque, pas en dying
+    if ((key == SDLK_RIGHT || key == SDLK_LEFT) && !samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
         samurai.stopWalk();
     }
 
-    // Si samurai est en saut, on ne fait rien ici, le retour à idle se gère
-    // automatiquement à la fin de l'animation jump.
+    if (key == SDLK_DOWN && !samurai.isJumping() && !samurai.isAttacking() && !samurai.isDying()) {
+        // Revenir à idle après le shield
+        samurai.setSprite("assets/samurai/idle", true);
+    }
 }
-
 
 void Game::update() {
     // Logique supplémentaire si besoin

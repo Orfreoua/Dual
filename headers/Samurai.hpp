@@ -17,12 +17,19 @@ public:
 
     void startJump();
     bool isJumping() const;
-    
-    // Méthodes pour la marche/course
+
     bool isWalking() const;
     bool isRunning() const;
     void startWalk();
     void stopWalk();
+
+    void startAttack(const std::string& attackPath);
+    bool isAttacking() const;
+
+	bool isDeadAnimationFinished() const;
+    // Nouveau : état de mort
+    void startDead();
+    bool isDying() const;
 
 private:
     SDL_Renderer* m_renderer;
@@ -36,10 +43,11 @@ private:
 
     int m_startY;
     int m_jumpHeight;
+    Uint32 m_walkStartTime;
+    const Uint32 RUN_THRESHOLD = 500;
 
-    // Ajout pour la marche et la course
-    Uint32 m_walkStartTime;           // Quand la marche a débuté
-    const Uint32 RUN_THRESHOLD = 1500; // Temps (en ms) avant de passer de walk à run
+    bool m_isAttacking;
+    bool m_isDying; // Indique si le samouraï est en train de "mourir" (dead)
 };
 
 #endif // SAMURAI_HPP
