@@ -44,7 +44,7 @@ void Game::run() {
         handleEvents();
         update();
         render();
-        SDL_Delay(16); // environ 60 fps
+        SDL_Delay(16);
     }
 }
 
@@ -63,11 +63,8 @@ void Game::handleEvents() {
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             m_isRunning = false;
-        } else if (event.type == SDL_KEYDOWN) {
-            // Vérifier si c'est une répétition
-            if (event.key.repeat == 0) {
-                processKeyDown(event.key.keysym.sym);
-            }
+        } else if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
+            processKeyDown(event.key.keysym.sym);
         } else if (event.type == SDL_KEYUP) {
             processKeyUp(event.key.keysym.sym);
         }
@@ -80,35 +77,36 @@ void Game::processKeyDown(SDL_Keycode key) {
     if (key == SDLK_ESCAPE) {
         m_isRunning = false;
     } else if (key == SDLK_RIGHT) {
-        samurai.setSprite("assets/samurai/walk");
+        samurai.setSprite("assets/samurai/walk", true);
         samurai.setDirection(1);
         samurai.setPosition(samurai.getX() + 5, samurai.getY());
     } else if (key == SDLK_LEFT) {
-        samurai.setSprite("assets/samurai/walk");
+        samurai.setSprite("assets/samurai/walk", true);
         samurai.setDirection(-1);
         samurai.setPosition(samurai.getX() - 5, samurai.getY());
+    } else if (key == SDLK_SPACE) {
+        // Lancer le saut uniquement si non déjà en saut
+        if (!samurai.isJumping()) {
+            samurai.startJump();
+        }
     }
 }
 
 void Game::processKeyUp(SDL_Keycode key) {
     std::cout << "Touche relâchée : " << SDL_GetKeyName(key) << std::endl;
 
-    // Quand on relâche la flèche droite ou gauche, on repasse en idle
-    // sans modifier la direction. Ainsi, si on était à gauche (direction -1),
-    // le idle reste tourné vers la gauche.
     if (key == SDLK_RIGHT || key == SDLK_LEFT) {
-        samurai.setSprite("assets/samurai/idle");
-        // On ne remet PAS direction à 1, on garde la direction actuelle.
-        // Ainsi, si on était à gauche, idle restera dans cette direction.
+        samurai.setSprite("assets/samurai/idle", true);
     }
+    // Ne pas arrêter le saut au relâchement de la touche, c'est géré par l'animation
 }
 
 void Game::update() {
-    // Ajoutez ici la logique de mise à jour si nécessaire
+    // Logique si besoin
 }
 
 void Game::render() {
-    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255); // fond noir
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
     SDL_RenderClear(m_renderer);
 
     samurai.updateAndRender();

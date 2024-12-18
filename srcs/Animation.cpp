@@ -43,15 +43,26 @@ Animation loadAnimation(SDL_Renderer* renderer, const std::string& folderPath) {
     return anim;
 }
 
-void updateAndRenderAnimation(SDL_Renderer* renderer, Animation& anim, int x, int y, int width, int height, int delayMs, int flipDirection) {
+void updateAndRenderAnimation(SDL_Renderer* renderer, Animation& anim, int x, int y, int width, int height, int delayMs, int flipDirection, bool loop) {
     if (anim.frames.empty()) return;
 
     SDL_RendererFlip flip = (flipDirection < 0) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
     Uint32 currentTime = SDL_GetTicks();
     if (currentTime - anim.lastFrameTime >= static_cast<Uint32>(delayMs)) {
-        anim.currentFrame = (anim.currentFrame + 1) % anim.frames.size();
-        anim.lastFrameTime = currentTime;
+        size_t nextFrame = anim.currentFrame + 1;
+        if (loop) {
+            // Animation bouclée
+            anim.currentFrame = nextFrame % anim.frames.size();
+            anim.lastFrameTime = currentTime;
+        } else {
+            // Animation non bouclée
+            if (nextFrame < anim.frames.size()) {
+                anim.currentFrame = nextFrame;
+                anim.lastFrameTime = currentTime;
+            }
+            // Sinon, on reste sur la dernière frame
+        }
     }
 
     SDL_Rect destRect = { x, y, width, height };

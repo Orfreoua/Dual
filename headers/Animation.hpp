@@ -12,7 +12,7 @@ struct Animation {
 };
 
 Animation loadAnimation(SDL_Renderer* renderer, const std::string& folderPath);
-void updateAndRenderAnimation(SDL_Renderer* renderer, Animation& anim, int x, int y, int width, int height, int delayMs, int flipDirection);
+void updateAndRenderAnimation(SDL_Renderer* renderer, Animation& anim, int x, int y, int width, int height, int delayMs, int flipDirection, bool loop = true);
 void destroyAnimation(Animation& anim);
 
 #endif // ANIMATION_HPP
