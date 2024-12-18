@@ -12,7 +12,8 @@ Samurai::Samurai(int x, int y)
       m_isJumping(false),
       m_currentLoop(true),
       m_startY(y),
-      m_jumpHeight(50) // Hauteur du saut, ajustez selon vos besoins
+      m_jumpHeight(50),
+      m_walkStartTime(0) // initialisé à 0
 {
 }
 
@@ -31,45 +32,46 @@ void Samurai::setSprite(const std::string& spritePath, bool loop) {
 }
 
 void Samurai::updateAndRender() {
-    // Mettre à jour la position si on est en saut et que l'animation n'est pas bouclée
+    // Gestion du saut (identique à avant)
     if (m_isJumping && !m_currentLoop && m_currentAnimation.frames.size() > 1) {
         size_t F = m_currentAnimation.frames.size();
         size_t cf = m_currentAnimation.currentFrame;
         size_t midFrame = F / 2;
 
-        // Calcul de la nouvelle position en fonction de la frame
-        // Première moitié : monter
-        // Deuxième moitié : redescendre
         int newY;
         if (cf < midFrame) {
-            // Progression de 0 à m_jumpHeight sur la première moitié
             float t = (float)cf / (float)(midFrame);
             newY = m_startY - (int)(m_jumpHeight * t);
         } else {
-            // Redescente sur la deuxième moitié
             float t = (float)(cf - midFrame) / (float)(F - midFrame - 1);
-            // t passe de 0 à 1 dans la deuxième moitié
-            // On redescend de m_jumpHeight à 0
             newY = m_startY - m_jumpHeight + (int)(m_jumpHeight * t);
         }
 
         setPosition(getX(), newY);
     }
 
+    // Appel du rendu de l'animation
     updateAndRenderAnimation(m_renderer, m_currentAnimation, getX(), getY(), m_width, m_height, m_delayMs, m_direction, m_currentLoop);
 
-    // Si on est en train de sauter et que c'est une animation non bouclée
+    // Fin du saut
     if (m_isJumping && !m_currentLoop) {
         size_t lastFrameIndex = (m_currentAnimation.frames.empty()) ? 0 : (m_currentAnimation.frames.size() - 1);
         if (m_currentAnimation.currentFrame == lastFrameIndex) {
             Uint32 currentTime = SDL_GetTicks();
             if (currentTime - m_currentAnimation.lastFrameTime >= (Uint32)m_delayMs) {
-                // L'animation est terminée, on repasse en idle
                 m_isJumping = false;
                 setSprite("assets/samurai/idle", true);
-                // Restaure la position initiale
                 setPosition(getX(), m_startY);
             }
+        }
+    }
+
+    // Vérifier si on doit passer de walk à run
+    if (isWalking() && !isRunning()) {
+        Uint32 currentTime = SDL_GetTicks();
+        if (currentTime - m_walkStartTime >= RUN_THRESHOLD) {
+            // Passe à run
+            setSprite("assets/samurai/run", true);
         }
     }
 }
@@ -85,12 +87,41 @@ void Samurai::cleanUp() {
 void Samurai::startJump() {
     if (!m_isJumping) {
         m_isJumping = true;
-        m_startY = getY(); // On enregistre la position au sol avant le saut
-        setSprite("assets/samurai/jump", false); // jump non bouclé
-        // Ne pas changer la position ici, on le fera dans updateAndRender()
+        m_startY = getY();
+        setSprite("assets/samurai/jump", false);
     }
 }
 
 bool Samurai::isJumping() const {
     return m_isJumping;
+}
+
+// Méthodes de marche/course
+bool Samurai::isWalking() const {
+    return (currentSprite.find("walk") != std::string::npos);
+}
+
+bool Samurai::isRunning() const {
+    return (currentSprite.find("run") != std::string::npos);
+}
+
+void Samurai::startWalk() {
+    // On ne réinitialise le timer que si on passe vraiment à walk
+    // c'est-à-dire si on n'est ni en walk ni en run
+    if (!isWalking() && !isRunning()) {
+        setSprite("assets/samurai/walk", true);
+        m_walkStartTime = SDL_GetTicks();
+    } else if (isRunning()) {
+        // Si on était en run et qu'on repasse à walk (situation rare),
+        // on réinitialise le chrono
+        setSprite("assets/samurai/walk", true);
+        m_walkStartTime = SDL_GetTicks();
+    }
+}
+
+void Samurai::stopWalk() {
+    // Revenir à idle
+    setSprite("assets/samurai/idle", true);
+    // Réinitialiser le timer
+    m_walkStartTime = 0;
 }

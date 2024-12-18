@@ -77,15 +77,26 @@ void Game::processKeyDown(SDL_Keycode key) {
     if (key == SDLK_ESCAPE) {
         m_isRunning = false;
     } else if (key == SDLK_RIGHT) {
-        samurai.setSprite("assets/samurai/walk", true);
-        samurai.setDirection(1);
-        samurai.setPosition(samurai.getX() + 5, samurai.getY());
+        // Ne pas interrompre le saut
+        if (!samurai.isJumping()) {
+            samurai.setDirection(1);
+            samurai.setPosition(samurai.getX() + 5, samurai.getY());
+            samurai.startWalk();
+        } else {
+            // Le samouraï est en saut, on peut éventuellement juste changer la direction,
+            // mais sans changer l'animation. (Optionnel)
+            samurai.setDirection(1);
+        }
     } else if (key == SDLK_LEFT) {
-        samurai.setSprite("assets/samurai/walk", true);
-        samurai.setDirection(-1);
-        samurai.setPosition(samurai.getX() - 5, samurai.getY());
+        if (!samurai.isJumping()) {
+            samurai.setDirection(-1);
+            samurai.setPosition(samurai.getX() - 5, samurai.getY());
+            samurai.startWalk();
+        } else {
+            // En saut, on ne change pas l'animation, juste la direction si on veut
+            samurai.setDirection(-1);
+        }
     } else if (key == SDLK_SPACE) {
-        // Lancer le saut uniquement si non déjà en saut
         if (!samurai.isJumping()) {
             samurai.startJump();
         }
@@ -95,14 +106,19 @@ void Game::processKeyDown(SDL_Keycode key) {
 void Game::processKeyUp(SDL_Keycode key) {
     std::cout << "Touche relâchée : " << SDL_GetKeyName(key) << std::endl;
 
-    if (key == SDLK_RIGHT || key == SDLK_LEFT) {
-        samurai.setSprite("assets/samurai/idle", true);
+    // Ne pas interrompre le saut non plus à la fin de la pression
+    if ((key == SDLK_RIGHT || key == SDLK_LEFT) && !samurai.isJumping()) {
+        // Si on n'est pas en saut, on repasse à idle
+        samurai.stopWalk();
     }
-    // Ne pas arrêter le saut au relâchement de la touche, c'est géré par l'animation
+
+    // Si samurai est en saut, on ne fait rien ici, le retour à idle se gère
+    // automatiquement à la fin de l'animation jump.
 }
 
+
 void Game::update() {
-    // Logique si besoin
+    // Logique supplémentaire si besoin
 }
 
 void Game::render() {

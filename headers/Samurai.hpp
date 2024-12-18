@@ -17,6 +17,12 @@ public:
 
     void startJump();
     bool isJumping() const;
+    
+    // Méthodes pour la marche/course
+    bool isWalking() const;
+    bool isRunning() const;
+    void startWalk();
+    void stopWalk();
 
 private:
     SDL_Renderer* m_renderer;
@@ -28,8 +34,12 @@ private:
     bool m_isJumping;
     bool m_currentLoop;
 
-    int m_startY;       // Position de départ avant le saut
-    int m_jumpHeight;   // Hauteur maximum du saut
+    int m_startY;
+    int m_jumpHeight;
+
+    // Ajout pour la marche et la course
+    Uint32 m_walkStartTime;           // Quand la marche a débuté
+    const Uint32 RUN_THRESHOLD = 1500; // Temps (en ms) avant de passer de walk à run
 };
 
 #endif // SAMURAI_HPP
